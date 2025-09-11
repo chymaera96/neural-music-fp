@@ -1,8 +1,9 @@
 # Neural Music Fingerprinting
 
-This repository contains the code to run the experiments detailed in our ISMIR2025 paper 'Enhancing Neural Audio Fingerprint Robustness to Audio Degradation for Music Identification'. We build upon the [Neural Audio Fingerprinting](https://github.com/mimbres/neural-audio-fp) framework, introducing several key improvements to create a more robust and efficient music identification system.
+This repository contains the code to run the experiments detailed in our [ISMIR2025 paper](https://arxiv.org/abs/2506.22661): Enhancing Neural Audio Fingerprint Robustness to Audio Degradation for Music Identification. We build upon the [Neural Audio Fingerprinting](https://github.com/mimbres/neural-audio-fp) framework, introducing several key improvements to create a more robust and efficient music identification system.
 
 **Key Features**
+
 - **Enhanced Robustness**: Models are trained to be resilient against various real-world audio degradations.
 - **Modernized Stack**: The codebase is updated to use Python 3.11, TensorFlow 2.13, and Faiss 1.7.4.
 - **Advanced Database Management**: Our implementation includes powerful FAISS utilities, allowing you to easily resume failed extractions and perform fast updates to fingerprint databases.
@@ -11,6 +12,7 @@ This repository contains the code to run the experiments detailed in our ISMIR20
 - **Pre-trained Models**: Get started immediately with our best-performing models, available on Zenodo.
 
 **Quick Facts & Limitations**
+
 - We provide a Docker Image with GPU support!
 - We only support 8000 Hz audio for training and evaluation. Inference can be done for various sampling rates by the integrated resampling (Upsampling is not recommended).
 - Training and evaluation is only possible with `.wav` files. For inference, we support `.wav`, `.flac`, `.mp3`, `.aac`, and `.ogg` audio formats. But the model was tested with `.mp3` and `.wav` files only.
@@ -46,8 +48,6 @@ This repository contains the code to run the experiments detailed in our ISMIR20
 ## Installation
 
 ### Conda Environment
-
-For the [Docker image](#installation-docker-image) please see.
 
 We provide an `environment.yaml` file which can be used directly, but installing `faiss` and `tensorflow` together was challenging with the other packages. Therefore, I recommend following the indicated steps below.
 
@@ -168,8 +168,7 @@ This project comes with a pre-configured `Dockerfile` and `docker-compose.yml` f
 
 ## Pre-trained Models
 
-Our pre-trained models (~200MB each after decompression) are available at 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15719945.svg)](https://doi.org/10.5281/zenodo.15719945)
+Our pre-trained models (~200MB each after decompression) are available at: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15719945.svg)](https://doi.org/10.5281/zenodo.15719945)
 
 You can use use `./download-models.sh` to automatize the process. Make the script executable and run it:
 
@@ -195,6 +194,7 @@ This is the fastest way to use the fingerprinter on your own audio files. It inv
 Use `extraction.py` to generate fingerprints from your audio files (supports single files, directories, or lists of paths).
 
 Basic usage:
+
 ```bash
 python extraction.py \
   audio_path_or_dir \
@@ -203,6 +203,7 @@ python extraction.py \
 ```
 
 Advanced usage:
+
 ```bash
 # Advanced: Distribute extraction across multiple processes/machines
 # For example, to run the 2nd of 4 jobs:
@@ -219,20 +220,24 @@ Refer to `python extraction.py -h` for more details.
 #### Perform Retrieval
 
 Search for query fingerprints against a database index using `retrieval.py`. It will:
+
 - load the fingerprints for a single query audio clip or multiple query audio clips
-- query *all* the fingerprint segments in each `.npy` file against the database and return the top-k approximately most similar fingerprints for each one independently. 
+- query *all* the fingerprint segments in each `.npy` file against the database and return the top-k approximately most similar fingerprints for each one independently.
 
 To build the FAISS index, you must provide the database in one of three ways:
+
 - `--database-embeddings`: A directory of `.npy` fingerprint files.
 - `--database-memmap`: provide a path to the `database.mm` memmap file where all the fingerprints of individual audio clips are merged together.
 - `--database-index` A pre-built (trained and populated) `.index` FAISS file.
 
 Usage:
+
 ```bash
 python retrieval.py /path/to/query_file_or_directory output_dir --database-index database.index
 ```
 
 The output will be saved in `output_dir/results.csv` with the following fields:
+
 ```csv
 query_fp_path,query_seq_len,pred_track_path,pred_start_segment,score
 ```
@@ -248,6 +253,7 @@ In `pipeline.sh`, we put together the training and evaluation pipeline, it can b
 We use `.yaml` config files to define the parameters related to the architecture, the model, data, and training. Below is the usage for training a model. This will save the training logs and model checkpoints to the directory specified in the config with `cfg['MODEL']['LOG_ROOT_DIR']`. The trained model's configuration will be saved next to the weights.
 
 Usage:
+
 ```bash
 CUDA_VISIBLE_DEVICES=0 python train.py configs/nmfp-triplet.yaml
 ```
@@ -270,18 +276,19 @@ CUDA_VISIBLE_DEVICES=0 python evaluation-extraction.py logs/nmfp/fma-nmfp_deg/ch
 
 Use `evaluation-retrieval.py` to evaluate the retrieval performance. The script computes the following metrics:
 
-* track-level `track_hit_rate.txt`
-    * Top-1 Hit rate
-* segment-level `segment_hit_rate.txt`
-    * Exact Top-1 Hit rate (query and reference are exactly time aligned)
-    * Near Top-1 Hit rate (query and reference are misaligned less than 500 ms)
-    * Far Top-1 Hit rate (query and reference are misaligned more than 500 ms, same as track-level)
+- track-level `track_hit_rate.txt`
+  - Top-1 Hit rate
+- segment-level `segment_hit_rate.txt`
+  - Exact Top-1 Hit rate (query and reference are exactly time aligned)
+  - Near Top-1 Hit rate (query and reference are misaligned less than 500 ms)
+  - Far Top-1 Hit rate (query and reference are misaligned more than 500 ms, same as track-level)
 
 This script can be used with arbitrary datasets (such as the industrial dataset mentioned in the paper). In this case you might choose to disable the segment level evaluation do to lack of time stamps. Nonetheless, the script can automatically disable this feature too.
 
 The script will also create `analysis.csv`. You can use this to listen to the matches or do other types of analyses.
 
 Header of `analysis.csv`
+
 ```csv
 query_audio_path,query_start_segment,seq_start_idx,query_chunk_bound,seq_len,gt_track_path,pred_track_path,pred_start_segment,score
 ```
@@ -302,12 +309,13 @@ chmod +x download-dataset.sh
 ```
 
 We share the following data in zenodo [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15736620.svg)](https://doi.org/10.5281/zenodo.15736620):
-* music
-  * train chunks (10,000 x 30 sec)
-  * test queries (10,000 x 30 sec) (clean-time_shifted-degraded)
-    * The time boundary of the chunk inside the full track, which you can use to get the clean versions. We couldn't share the steps in between due to zenodo's 50GB cap.
-  * Full tracks of the queries
-* degradation
+
+- music
+  - train chunks (10,000 x 30 sec)
+  - test queries (10,000 x 30 sec) (clean-time_shifted-degraded)
+    - The time boundary of the chunk inside the full track, which you can use to get the clean versions. We couldn't share the steps in between due to zenodo's 50GB cap.
+  - Full tracks of the queries
+- degradation
 
 However, the entire test database files take 400+ GB space. You should download the FMA dataset and process them by following the steps in `dataset_creation/README`. We included the full tracks of the query chunks so that the clean versions are exactly the same (During mp3 to wav conversion and processing sox may apply dithering, which is a stochastic process. Not sure about the effect of this, but ideally, master tracks should be the same.)
 
@@ -330,8 +338,8 @@ Please cite the following publication when using the code, data, or the models:
 
 ## License
 
-* The code in this repository is licensed under the [Affero GPLv3](https://www.tldrlegal.com/license/gnu-affero-general-public-license-v3-agpl-3-0) license.
-* The model weights are also licensed under the [Affero GPLv3](https://www.tldrlegal.com/license/gnu-affero-general-public-license-v3-agpl-3-0) license.
+- The code in this repository is licensed under the [Affero GPLv3](https://www.tldrlegal.com/license/gnu-affero-general-public-license-v3-agpl-3-0) license.
+- The model weights are also licensed under the [Affero GPLv3](https://www.tldrlegal.com/license/gnu-affero-general-public-license-v3-agpl-3-0) license.
 
 See the LICENSE file for details.
 
