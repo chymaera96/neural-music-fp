@@ -108,7 +108,9 @@ class InferenceLoader(Sequence):
                 filename=str(input_path), sampleRate=self.fs, resampleQuality=0
             )().reshape(-1)
         except Exception as e:
-            raise RuntimeError(f"Error loading audio file {input_path}: {e}")
+            print(f"[WARNING] Skipping corrupted file {input_path}: {e}")
+            return None, None, input_path, output_path
+
 
         if len(audio) < self.segment_length:
             print(f"Skipping {input_path} too short.")
