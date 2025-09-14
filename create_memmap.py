@@ -3,7 +3,6 @@ import numpy as np
 from tqdm import tqdm
 from glob import glob
 import argparse
-import json
 
 parser = argparse.ArgumentParser(
     description="Create a large memmap array from many small (n,D) .npy files.")
@@ -11,8 +10,6 @@ parser.add_argument("--root", type=str, required=True,
                     help="Root directory containing .npy files (recursively).")
 parser.add_argument("--db_name", type=str, default="dummy_db.mm",
                     help="Output memmap file name.")
-parser.add_argument("--meta_name", type=str, default="embeddings_meta.json",
-                    help="Metadata JSON file name.")
 
 args = parser.parse_args()
 
@@ -43,10 +40,10 @@ for path in tqdm(all_files, desc="Merging"):
 
 mm.flush()
 
-# write metadata
-meta = {"path": out_path, "shape": (N, D), "dtype": str(dtype)}
-with open(os.path.join(args.root, args.meta_name), "w") as f:
-    json.dump(meta, f, indent=2)
+# save shape as a separate .npy file
+base, _ = os.path.splitext(args.db_name)
+shape_path = os.path.join(args.root, f"{base}_shape.npy")
+np.save(shape_path, np.array([N, D], dtype=np.int64))
 
 print(f"Saved memmap to {out_path} with shape ({N}, {D})")
-print(f"Metadata written to {args.meta_name}")
+print(f"Shape written to {shape_path}")
