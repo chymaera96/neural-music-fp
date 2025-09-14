@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser(
     description="Create a large memmap array from many small (n,D) .npy files.")
 parser.add_argument("--root", type=str, required=True,
                     help="Root directory containing .npy files (recursively).")
-parser.add_argument("--db_name", type=str, default="embeddings_memmap.dat",
+parser.add_argument("--db_name", type=str, default="dummy_db.mm",
                     help="Output memmap file name.")
 parser.add_argument("--meta_name", type=str, default="embeddings_meta.json",
                     help="Metadata JSON file name.")
